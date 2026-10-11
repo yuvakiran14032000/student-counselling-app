@@ -1,136 +1,163 @@
-# Pathway — Student Counselling Platform
+# Pathway Student Counselling App
 
-Pathway is a student counselling demo built as two separate applications. The Next.js App Router frontend keeps the current visual experience: warm ivory, forest green, peach accents, inline campus illustrations, mobile navigation, college discovery and the counselling enquiry form. A Node.js + Express + TypeScript backend owns MySQL access and authentication.
+Pathway is a student counselling demo built with a Next.js frontend and a Node.js API. It helps a student explore colleges, submit an enquiry, and lets a logged-in user view lead activity in a protected dashboard.
 
-## Architecture
+## Tech Stack
 
-```text
-Next.js frontend  http://localhost:3000
-        │ fetch + HTTP-only cookie
-Express API        http://localhost:4000
-        │ mysql2 parameterized queries
-MySQL              127.0.0.1:3306
-```
-
-Prisma has been removed. The backend uses `mysql2/promise`, SQL schema, bcryptjs password hashes, Zod validation and a signed JWT in an HTTP-only cookie. Express protects every dashboard endpoint with the same JWT checks used by the frontend session gate.
-
-## Features
-
-- Responsive landing page at `/` with hero, three-step explanation, four fictional colleges and a working enquiry form.
-- `/signup`, `/login` and `/dashboard` flow.
-- Server validation, duplicate email errors, bcrypt password hashing, JWT expiration and logout.
-- Protected Express endpoints for summary cards and leads.
-- Search by name, phone or city, city filter, pagination, loading, empty and error states.
-- 25 fictional seeded leads, plus public enquiries stored in MySQL.
-- Task 3 SQL in `task3.sql` and schema in `database/schema.sql`.
+- Next.js
+- Node.js and Express
+- MySQL
+- TypeScript
+- bcrypt for password hashing
+- JWT stored in an HTTP-only cookie
 
 ## Setup
 
-Install Node.js 22.12+ and MySQL 8.4. MySQL Workbench is optional; it is useful for running SQL and inspecting tables, but MySQL Server must be running.
+Requirements:
 
-Create the database and application account in Workbench:
+- Node.js 22.12 or newer
+- MySQL running locally
+
+Create the database:
 
 ```sql
-CREATE DATABASE student_counselling CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'counselling_app'@'localhost' IDENTIFIED BY 'YOUR_PRIVATE_PASSWORD';
-GRANT ALL PRIVILEGES ON student_counselling.* TO 'counselling_app'@'localhost';
+CREATE DATABASE student_counselling;
 ```
 
-Install each application separately:
+Install dependencies:
 
 ```powershell
 cd frontend
-npm ci
-Copy-Item .env.example .env.local
+npm install
+
 cd ..\backend
-npm ci
-Copy-Item .env.example .env
+npm install
 ```
 
-Edit `backend\.env`:
+Create environment files:
+
+```powershell
+cd backend
+Copy-Item .env.example .env
+
+cd ..\frontend
+Copy-Item .env.example .env.local
+```
+
+Example backend `.env`:
 
 ```dotenv
-DATABASE_URL="mysql://counselling_app:YOUR_PASSWORD@127.0.0.1:3306/student_counselling"
-JWT_SECRET="at-least-32-random-characters"
+DATABASE_URL="mysql://root:YOUR_PASSWORD@127.0.0.1:3306/student_counselling"
+JWT_SECRET="use-a-long-random-secret-with-at-least-32-characters"
 FRONTEND_ORIGIN="http://localhost:3000"
 API_PORT="4000"
 ```
 
-Edit `frontend\.env.local` so it contains `NEXT_PUBLIC_API_ORIGIN="http://localhost:4000"`.
+Example frontend `.env.local`:
 
-Generate a secret with `node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"`. Keep `.env` private. If the password contains URL characters, URL-encode it.
+```dotenv
+NEXT_PUBLIC_API_ORIGIN="http://localhost:4000"
+```
 
-Create tables and seed demo data:
+Create tables and seed dummy data:
 
-```powershell
-mysql --protocol=TCP --host=127.0.0.1 --port=3306 --user=counselling_app --password student_counselling < database/schema.sql
+
 cd backend
 npm run seed
 ```
 
-Run the two apps in separate terminals:
+Run the API:
 
 ```powershell
 cd backend
 npm run dev
+```
 
-# In a second terminal
+Run the frontend in another terminal:
+
+```powershell
 cd frontend
 npm run dev
 ```
 
-Open `http://localhost:3000`, create an account, log in, and visit the dashboard. There is no default account. Use fictional contact data because this is a demonstration project.
+Open:
 
-## API
+```text
+http://localhost:3000
+```
 
-| Method | Endpoint | Purpose |
-|---|---|---|
-| GET | `/health` | API health check |
-| POST | `/api/auth/signup` | Create an account |
-| POST | `/api/auth/login` | Set the HTTP-only JWT cookie |
-| POST | `/api/auth/logout` | Clear the cookie |
-| GET | `/api/auth/me` | Current authenticated user |
-| POST | `/api/enquiries` | Save a public counselling lead |
-| GET | `/api/leads?search=&city=&page=1` | Protected filtered leads |
-| GET | `/api/dashboard/summary` | Protected lead statistics |
+## What I Completed
 
-The frontend sends `credentials: include`; Express allows only `FRONTEND_ORIGIN`. SQL values are passed as parameters. The API limits JSON bodies to 8 KB, validates inputs with Zod, and never returns password hashes.
+- Landing page with hero section, how it works section, college cards, and call to action.
+- Responsive layout checked for mobile and desktop.
+- Sign up and login with validation messages.
+- Password hashing using bcrypt.
+- JWT-based login stored in an HTTP-only cookie.
+- Protected dashboard route.
+- Logout flow.
+- Dashboard summary cards for total leads, leads this week, and top city.
+- Leads table loaded from the API with search and city filter.
+- Loading, empty, and error states for dashboard data.
+- Seed data with 25 dummy leads.
+- Public enquiry form that saves leads.
+- College search from the database with server side filtering.
+- Task 3 SQL queries.
 
-## Security and assumptions
+## Design Choices
 
-Passwords use bcrypt cost 12. JWTs are signed with `JWT_SECRET`, expire after 24 hours, and are stored in `HttpOnly`, `SameSite=Lax` cookies; production cookies also use `Secure`. Any signed-up user can view the shared dashboard because that was selected for the machine test. Real staff software should use invitations, roles, scoped lead access, shared rate limiting, session revocation and privacy controls.
+I used green as the main colour because it feels steady and guidance-focused, with soft neutral backgrounds to keep the page easy to read. The typography mixes a clean sans serif with a serif accent to make the page feel less like a generic dashboard template. The dashboard is more compact because it is meant for quick lead review.
 
-Dates are stored and displayed as UTC. “This week” starts Monday 00:00 UTC. Top-city ties are sorted alphabetically. The colleges and all seeded leads are fictional. The fourth college intentionally has no seed leads so the zero-leads SQL query is demonstrable.
+## Assumptions
+
+- Any registered user can view the shared demo dashboard.
+- The seeded leads and colleges are fictional.
+- The current database has colleges and leads, so course selection is mentioned in the landing page but not stored as a separate course entity.
+- "Leads this week" is calculated from the current week using UTC dates.
+- This is a machine-test project, so deployment was not included.
+
+## What I Would Improve With More Time
+
+- Add a real courses table and link courses to colleges.
+- Add user roles so only staff can access the dashboard.
+- Add automated tests for authentication and dashboard APIs.
+- Add better admin tools for managing colleges and courses.
+- Add production-ready deployment settings.
 
 ## Task 3 SQL
 
+Top 5 colleges by number of leads in the last 30 days:
+
 ```sql
 SELECT c.id, c.name, c.city, COUNT(l.id) AS lead_count
-FROM colleges c JOIN leads l ON l.college_id = c.id
+FROM colleges AS c
+INNER JOIN leads AS l ON l.college_id = c.id
 WHERE l.created_at >= UTC_TIMESTAMP() - INTERVAL 30 DAY
-GROUP BY c.id, c.name, c.city ORDER BY lead_count DESC, c.id ASC LIMIT 5;
-
-SELECT c.id, c.name, c.city FROM colleges c
-LEFT JOIN leads l ON l.college_id = c.id
-WHERE l.id IS NULL ORDER BY c.id;
+GROUP BY c.id, c.name, c.city
+ORDER BY lead_count DESC, c.id ASC
+LIMIT 5;
 ```
 
-The first query ranks only colleges with leads in the rolling last 30 days. The second finds colleges with no leads at any time. Full copies are in `task3.sql`.
+Colleges with zero leads:
 
-## Checks and deliverables
-
-```powershell
-cd frontend
-npm run typecheck
-npm run lint
-npm run build
-
-cd ..\backend
-npm run typecheck
+```sql
+SELECT c.id, c.name, c.city
+FROM colleges AS c
+LEFT JOIN leads AS l ON l.college_id = c.id
+WHERE l.id IS NULL
+ORDER BY c.id ASC;
 ```
 
-After both servers and MySQL are available, open `http://localhost:3000` and verify signup, login, the dashboard, search, city filtering and logout manually.
+The same answers are also saved in `task3.sql`.
 
-## Interview walkthrough
+## Screenshots
 
-“Next.js owns the user interface and calls a separate Express API. Express validates requests, queries MySQL with parameterized `mysql2` statements, hashes passwords with bcryptjs, and signs a short-lived JWT cookie. The dashboard first asks Express for the current user, then loads summary and lead data through protected endpoints. Search and city filtering happen in MySQL. The visual language is calm and editorial so students can focus on choices, while the dashboard is dense enough for lead review.”
+Screenshots or a short screen recording should be included with the submission. The required screens are:
+
+- Landing page
+- Sign-up page
+- Login page
+- Dashboard
+
+## Notes for Submission
+
+Submit the project without `node_modules`, `.next`, or private `.env` files. Keep `.env.example`, `package.json`, and `package-lock.json` in the zip or Git repository.
