@@ -45,11 +45,10 @@ export const enquirySchema = z.object({
     .trim()
     .min(2, "Enter your city.")
     .max(80, "Use 80 characters or fewer."),
-  collegeId: z
-    .preprocess(
-      (value) => (value === "" || value == null ? undefined : value),
-      z.coerce.number().int().positive().max(2147483647).optional(),
-    ),
+  collegeId: z.preprocess(
+    (value) => (value === "" || value == null ? undefined : value),
+    z.coerce.number().int().positive().max(2147483647).optional(),
+  ),
   consent: z.literal(true, {
     error: "Please agree to be contacted about this enquiry.",
   }),

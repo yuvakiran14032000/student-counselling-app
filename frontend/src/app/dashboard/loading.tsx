@@ -1,1 +1,9 @@
-export default function Loading() { return <main id="main" className="page-state" role="status"><span className="eyebrow">PATHWAY WORKSPACE</span><h1>Getting things ready…</h1><p>Loading your counselling dashboard.</p></main>; }
+export default function Loading() {
+  return (
+    <main id="main" className="page-state" role="status">
+      <span className="eyebrow">PATHWAY WORKSPACE</span>
+      <h1>Getting things ready…</h1>
+      <p>Loading your counselling dashboard.</p>
+    </main>
+  );
+}
